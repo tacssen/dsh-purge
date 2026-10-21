@@ -2,6 +2,8 @@
   <img src="docs/banner.svg" alt="dsh-purge" width="720">
 </p>
 
+> **存档副本。** 原作者 **小杨 / [@YuJunZhiXue](https://github.com/YuJunZhiXue)**（MIT）。上游仓库 `YuJunZhiXue/dsh-purge` 已不可访问，本仓库仅保存未经修改的 v1.1.71 源码，一切权利归原作者所有。详见 [ARCHIVE-NOTICE.md](ARCHIVE-NOTICE.md)。
+
 <h1 align="center">⚔️ DeepSeek Harness 网络安全红队工具（dsh-purge）</h1>
 
 <p align="center"><strong>Version 1.1.71</strong></p>

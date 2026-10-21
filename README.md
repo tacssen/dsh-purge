@@ -2,6 +2,8 @@
   <img src="docs/banner.svg" alt="dsh-purge" width="720">
 </p>
 
+> **Archive copy.** Original project by **小杨 / [@YuJunZhiXue](https://github.com/YuJunZhiXue)** (MIT). The upstream repository `YuJunZhiXue/dsh-purge` is no longer available; this repository preserves the unmodified v1.1.71 source. All rights belong to the original author. See [ARCHIVE-NOTICE.md](ARCHIVE-NOTICE.md).
+
 <h1 align="center">⚔️ DeepSeek Harness cybersecurity red-team tool (dsh-purge)</h1>
 
 <p align="center"><strong>Version 1.1.71</strong></p>
