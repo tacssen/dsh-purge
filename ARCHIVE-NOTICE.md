@@ -26,8 +26,21 @@
 
 - 全部源码、文档、提示词、技能文件**版权归原作者 小杨（YuJunZhiXue）所有**。
 - 本仓库**未修改任何源代码**，仅新增本说明文件，并在两个 README 顶部加了一行指向本说明的存档横幅。
+  （2026-10-22 起有一处例外，见下文「后续改动」，仅删两个已失效的配置字段。）
 - 本仓库**不主张任何著作权**，也不以任何形式商业售卖。
 - 如原作者要求下架，删除即可，无需理由。
+
+### 后续改动
+
+v1.1.71 归档之后，本仓库只做过下面这一处改动，且**只删字段、不改逻辑**：
+
+| 日期 | 文件 | 改动 |
+|---|---|---|
+| 2026-10-22 | `presets/redteam/agent.cordis.yml` | 删掉 `tool-subagent` 行的 `toolFilter`（宿主 0.2.1 已拒收，不删则整份红队预设"加载失败"）与 `backgroundMode`（0.2.1 全树已无读取方），同删 `-fork` / `-codex` / `-claude-code` 三行的 `backgroundMode` |
+| 2026-10-22 | `docs/redteam-preset-dsh-0.2.1-compat.md` | 新增：现象 / 根因 / 修复 / 验证的完整记录 |
+| 2026-10-22 | `scripts/check-redteam-preset.mjs`、`scripts/check-preset-install.mjs` | 新增：预设离线体检、启动自愈检查 |
+
+除上述文件外，**未改动任何其它源码文件**。原作者的版权与署名要求不因这些改动而改变。
 
 ### 为什么会有这个仓库
 
@@ -60,9 +73,25 @@
 The original `README.zh-CN.md` requires attribution and a link to the source repository for anyone reusing the name, ideas, code, or prompts. This archive complies:
 
 - All source code, docs, prompts and skill files remain **copyright © 小杨 (YuJunZhiXue)**.
-- **No source file was modified.** The only additions are this notice and a one-line archive banner at the top of both READMEs.
+- **No source file was modified.** The only additions are this notice and a one-line archive banner at
+  the top of both READMEs. (One exception since 2026-10-22 — see *Later changes* below; it deletes two
+  obsolete config fields.)
 - No copyright is claimed here, and nothing is sold.
 - The author may request removal at any time; it will be deleted without argument.
+
+### Later changes
+
+Since the v1.1.71 archive, exactly one change has been made, and it **only deletes fields — no logic
+was touched**:
+
+| Date | File | Change |
+|---|---|---|
+| 2026-10-22 | `presets/redteam/agent.cordis.yml` | Removed `tool-subagent`'s `toolFilter` (rejected by host 0.2.1 — without this the whole redteam preset fails to mount) and `backgroundMode` (no reader left anywhere in 0.2.1); also removed `backgroundMode` from the `-fork` / `-codex` / `-claude-code` rows |
+| 2026-10-22 | `docs/redteam-preset-dsh-0.2.1-compat.md` | Added: full record of symptom / root cause / fix / verification |
+| 2026-10-22 | `scripts/check-redteam-preset.mjs`, `scripts/check-preset-install.mjs` | Added: offline preset health check and startup self-heal check |
+
+No other source file was touched. The original author's copyright and attribution requirements are
+unaffected by these changes.
 
 ### Why this exists
 

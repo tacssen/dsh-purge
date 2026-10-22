@@ -304,20 +304,23 @@
         provider: spawn
         toolName: subagent
         modelSelectionSettings: true
-        backgroundMode: continuable
-        # 子智能体是角色执行者（信息收集/资产梳理/漏洞发现/漏洞利用/内网渗透），**必须是叶子节点**：
-        # 靠提示词劝"不要再往下委派"是软的——模型完全可以无视。这里直接把委派工具从子会话的
-        # 工具目录里摘掉，子智能体连看都看不到 subagent / subagent_fork / workflow / ralph。
-        # maxDepth 同时收成 1 作为二道保险（默认 3 层太深，会白吃并发预算与上下文）。
+        # 子智能体是角色执行者（信息收集/资产梳理/漏洞发现/漏洞利用/内网渗透），**必须是叶子节点**。
+        # 叶子约束现在只由 maxDepth 执行：这是运行时硬拦（到深度上限的委派直接出错），
+        # 模型无视提示词也照样派不动；旧的两道保险里只有这一道还在。
         maxDepth: 1
-        # 注意：不能 deny `subagent` —— 它是这一行自己注册的 scoped 工具，不在全局工具库里，
-        # 写进 deny 会让 tools.restrict() 校验失败、整个委派路径报 "unknown global tool"（v0.8.0 踩过）。
-        # 子智能体拿不到 subagent_fork/workflow/ralph，加上 maxDepth: 1，实际已无派发能力。
-        toolFilter:
-          deny:
-            - subagent_fork
-            - workflow
-            - ralph
+        #
+        # ── 2026-10-22 迁移：删掉 toolFilter（原先 deny subagent_fork / workflow / ralph）──
+        # DSH 0.2.1 的 @deepseek-ai/dsh-tool-subagent 已不接受 `toolFilter`（也不接受更早的
+        # `persona`）：行配置里只要出现这两个字段，apply() 立刻抛
+        #   "toolFilter is no longer supported; configure persona and tool plugins in an
+        #    Agent Preset and select it with agentPreset (spawn only)"
+        # 预设激活是 fail-closed（registry.activate → mountPreset 抛错即整份标 broken），
+        # 所以症状是整份 preset "加载失败"、模式下拉里选不了，不是只有派活那一步失效。
+        # 想恢复"子会话连看都看不到委派工具"，新机制是给子会话指定独立 Agent Preset
+        # （agentPreset / allowedAgentPresets，仅进程内 spawn 支持）。那需要再声明一份子 preset，
+        # 而子会话当前靠"加入父方 preset 代际"继承 persona 与被 redteamRole 注入的角色稿，
+        # 换成独立 preset 会改掉这条链路，故本次不动，只做兼容性删除。
+        # （另：`backgroundMode: continuable` 在 0.2.1 已无任何读取方，一并删掉并注记。）
 
     # Fork omits model selection so provider/model stay equal to the parent and
     # the inherited history remains eligible for KV Cache reuse. This preset
@@ -329,7 +332,6 @@
       config:
         provider: fork
         toolName: subagent_fork
-        backgroundMode: continuable
 
     # Production dsh does not install these optional providers. Install the
     # matching Bundle in this Profile and restart the Host, then copy this
@@ -341,7 +343,6 @@
       config:
         provider: codex
         toolName: subagent_codex
-        backgroundMode: one-shot
         maxDepth: provider-managed
 
     - id: tool-subagent-claude-code
@@ -350,7 +351,6 @@
       config:
         provider: claude-code
         toolName: subagent_claude_code
-        backgroundMode: one-shot
         maxDepth: provider-managed
 
     - id: workflow-worker-thread
