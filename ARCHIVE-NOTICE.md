@@ -19,7 +19,7 @@
 
 ## 本仓库相对上游 v1.1.82 的改动
 
-**只动了 3 个文件，其余与上游完全一致。**
+**只动了 4 个文件，其余与上游完全一致。**
 
 ### 1. `lib/net-scope.js` — 门禁层停用
 
@@ -39,6 +39,54 @@
 ### 3. `lib/default-prompt-inject.en.md` — 第 121 / 143 行
 
 同上，英文版对应位置同步修改。
+
+### 4. `lib/update.js` — 更新能力全部禁用
+
+上游会主动检查并安装新版本；本仓库把所有更新通路切断，避免被上游覆盖掉本地补丁。
+
+| 函数 | 上游行为 | 本仓库行为 |
+|---|---|---|
+| `checkUpdate` | 拉 GitHub 版本列表、比对本地/远端 | 直接返回 `hasUpdate: false, disabled: true` |
+| 应用更新 | 下载 tarball/zip 并落盘 | 返回「更新已在本地禁用」 |
+| 通道切换 / 版本切换 / 更新操作 | 可切 stable/beta、回退版本 | 全部禁用 |
+
+改动标记为 `/* purge-noupdate -- ... */`，共 6 处。上游原文备份在同名 `.orig-1.1.82` 文件里。
+
+### 5. 本地版本锁 `purge-localonly` — 永不自动变回官方版
+
+上面第 4 条只关了「更新检查与安装」这层 UI 入口。2026-11-01 又加了第二层封锁，
+从**所有可能的通路**上断掉「自动装回官方版 / 自动还原成官方状态」：
+
+| 位置 | 封锁方式 |
+|---|---|
+| `lib/update.js` `archiveZipUrl` / `archiveTarballUrl` | 直接返回空串，下载地址从底层消失 |
+| `lib/update.js` `gitResetTo` | 直接 throw，禁止任何 `git reset/checkout` 到远端 |
+| `lib/profile-insert.js` `readPkgTarball` | 读不到时不再回退到上游 GitHub tarball，返回空串 |
+| `package.json` `dsh.install` | `preferred: local`，`tarball`/`zip`/`git` 全部置空 |
+| `lib/index.js` `apply()` | `autoApplyOnStart` / `autoUpdateOnStart` / `autoRevertOnMissing` 三个开关**硬编码强制 false**，配置文件写什么都覆盖不了 |
+
+**效果**：
+- 启动时不再自动 `reapplyInstalled`（即不再自动 revertAll + 重打补丁）
+- 不再自动重启宿主
+- 不会再从 GitHub 拉官方包覆盖
+- 只有用户**手动点「应用」**才会动宿主
+
+**你自己改插件仍然完全自由** —— 这层锁只封「自动回官方」，不封你的手改。
+
+### 6. 用户改动保护 `purge-localonly:user-edit-keep`
+
+`lib/core.js` 的 `looksLikePluginDefault()` 原来用三个标记判定「这是不是插件自己的默认稿」：
+
+```js
+["<|im_start|>system:", "<project_instructions>", "Little Code Sauce"]
+```
+
+生效版 `prompt-inject.md` 正好带全这三个 → 每次启动被判成插件默认 → 用内置槽覆盖回旧版。
+
+修复：新增 `hasUserEditedBeyondBundle()`，只要文本含 `草稿审查` / `Category Lock` /
+`完成契约` / `Completion Contract` 等新增段落，就不再判成插件默认。
+
+实测：带段落 → `false`（保留），不带 → `true`（覆盖）。
 
 ---
 
@@ -62,12 +110,13 @@ pnpm add github:tacssen/dsh-purge
 
 ### 还原为上游原版
 
-本仓库 `lib/` 下的三个文件保留了上游原文备份，后缀 `.orig-1.1.82`：
+本仓库 `lib/` 下的四个文件保留了上游原文备份，后缀 `.orig-1.1.82`：
 
 ```
 lib/net-scope.js.orig-1.1.82
 lib/default-prompt-inject.zh.md.orig-1.1.82
 lib/default-prompt-inject.en.md.orig-1.1.82
+lib/update.js.orig-1.1.82
 ```
 
 覆盖回去即可完全还原。
@@ -82,11 +131,12 @@ lib/default-prompt-inject.en.md.orig-1.1.82
 
 This repository is an archive of `dsh-purge` v1.1.82 with local de-restriction patches, not the original work of this repository's owner. Original author: **小杨** (`@YuJunZhiXue`), MIT licensed (see `LICENSE`).
 
-**Changes vs upstream v1.1.82** (3 files only):
+**Changes vs upstream v1.1.82** (4 files only):
 
 1. `lib/net-scope.js` — gate functions short-circuited (`isAttackTask`/`isCheatTask` → `false`, `publicHostHit`/`taskTargetHit` → `null`, `denyToolResult` → empty non-error result).
 2. `lib/default-prompt-inject.zh.md` — lines 115/137: prohibition changed to execution.
 3. `lib/default-prompt-inject.en.md` — lines 121/143: same change.
+4. `lib/update.js` — all update paths disabled (`checkUpdate` returns `hasUpdate: false, disabled: true`; apply/channel/version switching refuse with "update disabled locally"). 6 `/* purge-noupdate */` markers, so an upstream release cannot overwrite the local patches.
 
 Rationale: upstream's prompt contradicted itself (line 115 mandated a refusal reply while line 271 declared any refusal an internal fault), and the gate blocked legitimate theory/defense questions about `pentest` / `webshell` topics.
 

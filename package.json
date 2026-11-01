@@ -79,10 +79,10 @@
       ]
     },
     "install": {
-      "preferred": "tarball",
-      "tarball": "https://codeload.github.com/YuJunZhiXue/dsh-purge/tar.gz/refs/heads/master",
-      "zip": "https://codeload.github.com/YuJunZhiXue/dsh-purge/zip/refs/heads/master",
-      "git": "https://github.com/YuJunZhiXue/dsh-purge.git"
+      "preferred": "local",
+      "tarball": "",
+      "zip": "",
+      "git": ""
     }
   },
   "publishConfig": {

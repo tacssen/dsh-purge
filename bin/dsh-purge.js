@@ -23,6 +23,14 @@ function printStatus(state) {
   out.push(`  备份 / backup  ${state.has_backup ? "有 / yes" : "无 / no"}`);
   out.push(`  注入文件       ${state.override_path}`);
   out.push(`  注入状态       ${state.override_status}`);
+  if (state.asar_still_sealed) {
+    const shadow = state.asar_shadowed || {};
+    if (shadow.shadowed) {
+      out.push(`  app.asar       还在，但被解包目录遮住（Electron 先读 resources/app/）。生效源: ${shadow.active}`);
+    } else {
+      out.push(`  app.asar       还在，且没有解包目录，当前进程读的是归档里的原版补丁未生效`);
+    }
+  }
   out.push("");
   out.push(`  补丁 ${state.patches_applied}/${core.ALL_PATCHES.length} 已清洗, ${state.patches_pending} 待清洗`);
   for (const p of core.ALL_PATCHES) {
